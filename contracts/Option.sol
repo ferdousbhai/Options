@@ -34,7 +34,7 @@ contract Option is ERC20 {
     }
 
     function exercise() public payable {
-        require(block.timestamp < self.expiryTime);
+        require(block.timestamp < time, "Contract expired.");
         // receive strike price * unit of asset
         // check that msg.sender owns the call contract token
         // check that uniswap price of asset is more than strike
@@ -42,15 +42,9 @@ contract Option is ERC20 {
         // destroy call contract token
     }
 
-    function finalize() public payable {
-        require (block.timestamp >= self.expiryTime);
-        // send back the locked assets
-        selfdestruct(daoAddress);
+    function redeem() public {
+        require(block.timestamp >= time, "Contract has not expired yet!");
+        // check that msg.sender owns the call contract token
+        // send back the asset to the user
     }
 }
-
-
-\
-
-
-

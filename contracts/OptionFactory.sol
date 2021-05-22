@@ -13,6 +13,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract OptionFactory is Ownable {
     Option[] public optionList;
 
+    event NewOption {
+        optionType _type,
+        address _a,
+        uint256 _t,
+        uint256 _k,
+        string _symbol,
+        string _name
+    }
+
     function createOption(
         optionType _type,
         address _a,
@@ -20,8 +29,9 @@ contract OptionFactory is Ownable {
         uint256 _k,
         string _symbol,
         string _name
-    ) external onlyOwner {
+    ) public onlyOwner {
         // Owner is the account that deployed this contract, i.e., the DAO contract.
         optionList.push(Option(_type, _a, _t, _k, _symbol, _name));
+        emit NewOption(_type, _a, _t, _k, _symbol, _name);
     }
 }
