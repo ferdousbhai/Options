@@ -6,21 +6,22 @@ import "./Option.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title Call option contract
- * @dev An ERC20 token that represents a call option contract of an asset with a specific strike and expiry.
- * This contract will be called by a DAO contract that governs which strikes/assets/expiry time to issue contracts for.
+ * @title Creates and maintains a list of available option contracts.
+ * @dev Owned by the OptionFactory contract that governs which strikes/assets/expiry time to issue contracts for.
  */
 contract OptionFactory is Ownable {
+    enum OptionType {Call, Put}
+
     Option[] public optionList;
 
-    event NewOption {
+    event NewOption(
         optionType _type,
         address _a,
         uint256 _t,
         uint256 _k,
         string _symbol,
         string _name
-    }
+    );
 
     function createOption(
         optionType _type,
@@ -30,7 +31,7 @@ contract OptionFactory is Ownable {
         string _symbol,
         string _name
     ) public onlyOwner {
-        // Owner is the account that deployed this contract, i.e., the DAO contract.
+        // create an option contract and push it to list of options:
         optionList.push(Option(_type, _a, _t, _k, _symbol, _name));
         emit NewOption(_type, _a, _t, _k, _symbol, _name);
     }

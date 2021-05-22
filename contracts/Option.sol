@@ -4,6 +4,11 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+/**
+ * @title An option contract.
+ * @dev An ERC20 token that represents either call or a put option contract of an asset with a specific strike and expiry.
+ * This contract is called by the OptionFactory contract.
+ */
 contract Option is ERC20 {
     enum OptionType {Call, Put}
 
@@ -19,8 +24,8 @@ contract Option is ERC20 {
         address _a,
         uint256 _t,
         uint256 _k,
-        string _symbol,
-        string _name
+        string memory _symbol,
+        string memory _name
     ) ERC20(_symbol, _name) {
         optionType = _type;
         asset_address = _a;
@@ -28,23 +33,29 @@ contract Option is ERC20 {
         strike = _k;
     }
 
-    function issue() public payable {
-        require(block.timestamp < time);
-        _mint(msg.sender, msg.value / 100); //How to specify that caller is sending underlying asset instead of ETH?
-    }
-
-    function exercise() public payable {
+    modifier notExpired() {
         require(block.timestamp < time, "Contract expired.");
-        // receive strike price * unit of asset
-        // check that msg.sender owns the call contract token
-        // check that uniswap price of asset is more than strike
-        // send back the asset
-        // destroy call contract token
+        _;
     }
 
-    function redeem() public {
+    modifier expired() {
         require(block.timestamp >= time, "Contract has not expired yet!");
-        // check that msg.sender owns the call contract token
-        // send back the asset to the user
+        _;
+    }
+
+    function issue() public payable notExpired {
+        _mint(msg.sender, msg.value / 100); //TO DO: How to specify that caller is sending underlying asset instead of 'msg.value'?
+    }
+
+    function exercise() public payable notExpired {
+        // TO DO: receive strike price * unit of asset
+        // TO DO: receive call contract token
+        // TO DO: check that uniswap price of asset is more than strike
+        // TO DO: send back the asset
+    }
+
+    function redeem() public payable expired {
+        // TO DO: receive call contract token
+        // TO DO: send back the asset to the user
     }
 }
