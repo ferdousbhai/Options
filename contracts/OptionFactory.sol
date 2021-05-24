@@ -10,29 +10,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @dev Owned by the OptionFactory contract that governs which strikes/assets/expiry time to issue contracts for.
  */
 contract OptionFactory is Ownable {
-    enum OptionType {Call, Put}
-
-    Option[] public optionList;
-
-    event NewOption(
-        optionType _type,
-        address _a,
-        uint256 _t,
-        uint256 _k,
-        string _symbol,
-        string _name
-    );
+    Option[] optionList;
 
     function createOption(
-        optionType _type,
+        OptionType _type,
         address _a,
         uint256 _t,
         uint256 _k,
-        string _symbol,
-        string _name
-    ) public onlyOwner {
+        string memory _symbol,
+        string memory _name
+    ) external onlyOwner {
         // create an option contract and push it to list of options:
-        optionList.push(Option(_type, _a, _t, _k, _symbol, _name));
-        emit NewOption(_type, _a, _t, _k, _symbol, _name);
+        optionList.push(new Option(_type, _a, _t, _k, _symbol, _name));
     }
 }
