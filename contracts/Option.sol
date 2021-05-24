@@ -22,6 +22,7 @@ contract Option is ERC20 {
 
     mapping(address => uint256) asset_balance;
     uint256 total_asset_balance;
+    uint256 outstanding_asset_balance;
 
     address daoAddress;
 
@@ -53,20 +54,25 @@ contract Option is ERC20 {
         _mint(msg.sender, msg.value / 100); //TO DO: How to check that the caller is sending units of underlying asset?
         asset_balance[msg.sender] += msg.value;
         total_asset_balance += msg.value;
+        outstanding_asset_balance += msg.value;
     }
 
     function exercise() external notExpired {
-        // TO DO: receive strike price * unit of asset
-        // TO DO: receive call contract token
         // TO DO: check that the uniswap price of asset in DAI is more than the strike price.
-        asset.transfer(msg.sender, asset_balance[msg.sender]);
-        asset_balance[msg.sender] -= msg.value;
-        total_asset_balance -= msg.value;
+        // TO DO: receive strike price * unit of asset in DAI.
+        // TO DO: receive call contract tokens, 'c' + burn the tokens.
+        uint256 a = c * 100; // 'c' is the number of call contract tokens. 'a' is the units of asset to send back.
+        asset.transfer(msg.sender, a);
+        outstanding_asset_balance -= a;
     }
 
     function redeem() external expired {
-        asset.transfer(msg.sender, asset_balance[msg.sender]); // TO DO: Send the asset in proportion to what's outstanding.
-        asset_balance[msg.sender] -= msg.value;
-        total_asset_balance -= msg.value;
+        uint256 v =
+            asset_balance[msg.sender] *
+                (outstanding_asset_balance / total_asset_balance);
+        asset.transfer(msg.sender, v);
+        total_asset_balance -= asset_balance[msg.sender];
+        outstanding_asset_balance -= asset_balance[msg.sender];
+        asset_balance[msg.sender] = 0;
     }
 }
