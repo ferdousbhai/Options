@@ -15,7 +15,7 @@ contract Option is ERC20 {
     enum OptionType {Call, Put}
 
     OptionType optionType;
-    IERC20 asset; // the underlying asset
+    address underlyingAsset; // the underlying asset's contract address
     uint256 time; // expiry time
     uint256 strike; // strike price in DAI
 
@@ -29,14 +29,14 @@ contract Option is ERC20 {
 
     constructor(
         OptionType _type,
-        IERC20 _a,
+        address _underlyingAsset,
         uint256 _t,
         uint256 _k,
         string memory _symbol,
         string memory _name
     ) ERC20(_symbol, _name) {
         optionType = _type;
-        asset = _a;
+        underlyingAsset = _underlyingAsset;
         time = _t;
         strike = _k;
     }
@@ -64,13 +64,13 @@ contract Option is ERC20 {
         // TO DO: receive strike price * unit of asset in DAI.
         // TO DO: receive call contract tokens, 'c'
         uint256 a = c * 100; // 'c' is the number of call contract tokens. 'a' is the units of asset to send back.
-        asset.transfer(msg.sender, a);
+        IERC20(underlyingAsset).transfer(msg.sender, a);
         outstanding_asset_balance -= a;
         // TO DO: burn the call contract tokens receiveed, 'c'
     }
 
     function redeem() external expired {
-        asset.transfer(
+        IERC20(underlyingAsset).transfer(
             msg.sender,
             asset_balances[msg.sender] *
                 (outstanding_asset_balance / total_asset_balance)
