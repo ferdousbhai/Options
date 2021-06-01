@@ -15,13 +15,14 @@ contract Option is ERC20 {
     enum OptionType {Call, Put}
 
     OptionType optionType;
-    address underlyingAsset; // the underlying asset's contract address
-    uint256 time; // expiry time
+    IERC20 underlyingAsset; // the underlying asset
+    IERC20 DAI = IERC20(0x6b175474e89094c44da98b954eedeac495271d0f);
+    uint256 expiryTime; // expiry time
     uint256 strike; // strike price in DAI
 
     mapping(address => uint256) asset_balances; // This is expensive. Is there a better way?
-    uint256 total_asset_balance; // keeps track of amount of assets locked in to issue options
-    uint256 outstanding_asset_balance; // keeps track of amount of assets not exercised yet
+    uint256 total_asset_balance; // Keeps track of amount of assets locked in to issue options.
+    uint256 outstanding_asset_balance; // Keeps track of amount of assets not exercised yet.
     uint256 fee; // fee per contract issuance in DAI
     uint256 total_fees; // total fees collected in DAI
 
@@ -29,25 +30,25 @@ contract Option is ERC20 {
 
     constructor(
         OptionType _type,
-        address _underlyingAsset,
+        address _underlyingAssetAddress,
         uint256 _t,
         uint256 _k,
         string memory _symbol,
         string memory _name
-    ) ERC20(_symbol, _name) {
+    ) IERC20(_symbol, _name) {
         optionType = _type;
-        underlyingAsset = _underlyingAsset;
-        time = _t;
+        underlyingAsset = IERC20(_underlyingAssetAddress);
+        expiryTime = _t;
         strike = _k;
     }
 
     modifier notExpired() {
-        require(block.timestamp < time, "Contract expired.");
+        require(block.timestamp < expiryTime, "Contract expired.");
         _;
     }
 
     modifier expired() {
-        require(block.timestamp >= time, "Contract has not expired yet!");
+        require(block.timestamp >= expiryTime, "Contract has not expired yet!");
         _;
     }
 
@@ -64,13 +65,13 @@ contract Option is ERC20 {
         // TO DO: receive strike price * unit of asset in DAI.
         // TO DO: receive call contract tokens, 'c'
         uint256 a = c * 100; // 'c' is the number of call contract tokens. 'a' is the units of asset to send back.
-        IERC20(underlyingAsset).transfer(msg.sender, a);
+        underlyingAsset.transfer(msg.sender, a);
         outstanding_asset_balance -= a;
         // TO DO: burn the call contract tokens receiveed, 'c'
     }
 
     function redeem() external expired {
-        IERC20(underlyingAsset).transfer(
+        underlyingAsset.transfer(
             msg.sender,
             asset_balances[msg.sender] *
                 (outstanding_asset_balance / total_asset_balance)
@@ -83,7 +84,7 @@ contract Option is ERC20 {
     function collectFees() external expired {
         require(total_fees > 0, "Fees were already withdrawn!");
         require(msg.sender == daoAddress);
-        DAI.transfer(daoAddress, total_fees); // TODO: Handle DAI
+        DAI.transfer(daoAddress, total_fees);
         total_fees = 0;
     }
 }
