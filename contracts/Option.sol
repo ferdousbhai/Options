@@ -6,25 +6,25 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @title An option contract.
- * @dev An ERC20 token that represents a call or a put option contract.
+ * @dev An ERC20 token that represents either a call or a put option contract of an asset with a specific strike and expiry.
  * The ERC20 contracts are initiated by the OptionFactory contract.
- * TO DO: Charge a flat fee for issuing contracts.
+ * TO DO: Use DAI as base currency + charge a flat fee for issuing contracts.
  * TO DO: Handle puts.
- * TO DO: Use correct units in transfer functions.
  */
 contract Option is ERC20 {
     enum OptionType {Call, Put}
+
     OptionType optionType;
     IERC20 underlyingAsset; // the underlying asset
-    IERC20 DAI = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    IERC20 DAI = IERC20(0x6b175474e89094c44da98b954eedeac495271d0f);
     uint256 expiryTime; // expiry time
     uint256 strike; // strike price in DAI
 
-    mapping(address => uint256) underlyingAssetBalances; // This is expensive. Is there a better way?
-    uint256 totalAssetBalance; // Keeps track of amount of assets locked in to issue options.
-    uint256 outstandingAssetBalance; // Keeps track of amount of assets not exercised yet.
+    mapping(address => uint256) asset_balances; // This is expensive. Is there a better way?
+    uint256 total_asset_balance; // Keeps track of amount of assets locked in to issue options.
+    uint256 outstanding_asset_balance; // Keeps track of amount of assets not exercised yet.
     uint256 fee; // fee per contract issuance in DAI
-    uint256 totalFees; // total fees collected in DAI
+    uint256 total_fees; // total fees collected in DAI
 
     address daoAddress; // fees will be sent here after contract expiry
 
@@ -35,7 +35,7 @@ contract Option is ERC20 {
         uint256 _k,
         string memory _symbol,
         string memory _name
-    ) ERC20(_symbol, _name) {
+    ) IERC20(_symbol, _name) {
         optionType = _type;
         underlyingAsset = IERC20(_underlyingAssetAddress);
         expiryTime = _t;
@@ -52,39 +52,39 @@ contract Option is ERC20 {
         _;
     }
 
-    function issue(uint256 _n) external notExpired {
-        uint256 _a = _n * 100;
-        underlyingAsset.transferFrom(msg.sender, address(this), _a);
-        _mint(msg.sender, _n);
-        underlyingAssetBalances[msg.sender] += _a;
-        totalAssetBalance += _a;
-        outstandingAssetBalance += _a;
+    function issue() external notExpired {
+        //TO DO: receive the underlying asset
+        _mint(msg.sender, msg.value / 100);
+        asset_balances[msg.sender] += msg.value;
+        total_asset_balance += msg.value;
+        outstanding_asset_balance += msg.value;
     }
 
-    function exercise(uint256 _n) external notExpired {
+    function exercise() external notExpired {
         // TO DO: require that the uniswap price (TWAP) of asset in DAI is more than the strike price.
-        uint256 _a = _n * 100;
-        DAI.transferFrom(msg.sender, address(this), _a * strike);
-        this.transferFrom(msg.sender, address(this), _n);
-        underlyingAsset.transfer(msg.sender, _a);
-        outstandingAssetBalance -= _a;
+        // TO DO: receive strike price * unit of asset in DAI.
+        // TO DO: receive call contract tokens, 'c'
+        uint256 a = c * 100; // 'c' is the number of call contract tokens. 'a' is the units of asset to send back.
+        underlyingAsset.transfer(msg.sender, a);
+        outstanding_asset_balance -= a;
+        // TO DO: burn the call contract tokens receiveed, 'c'
     }
 
     function redeem() external expired {
         underlyingAsset.transfer(
             msg.sender,
-            underlyingAssetBalances[msg.sender] *
-                (outstandingAssetBalance / totalAssetBalance)
+            asset_balances[msg.sender] *
+                (outstanding_asset_balance / total_asset_balance)
         );
-        totalAssetBalance -= underlyingAssetBalances[msg.sender];
-        outstandingAssetBalance -= underlyingAssetBalances[msg.sender];
-        underlyingAssetBalances[msg.sender] = 0;
+        total_asset_balance -= asset_balances[msg.sender];
+        outstanding_asset_balance -= asset_balances[msg.sender];
+        asset_balances[msg.sender] = 0;
     }
 
     function collectFees() external expired {
-        require(totalFees > 0, "Fees were already withdrawn!");
+        require(total_fees > 0, "Fees were already withdrawn!");
         require(msg.sender == daoAddress);
-        DAI.transfer(daoAddress, totalFees);
-        totalFees = 0;
+        DAI.transfer(daoAddress, total_fees);
+        total_fees = 0;
     }
 }
