@@ -2,7 +2,7 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-import "./Option.sol";
+import "./CallOption.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -10,10 +10,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @dev Owned by the OptionFactory contract that governs which strikes/assets/expiry time to issue contracts for.
  */
 contract OptionFactory is Ownable {
-    Option[] optionList;
+    CallOption[] callOptionList;
 
     function createOption(
-        OptionType _type,
         address _a,
         uint256 _t,
         uint256 _k,
@@ -21,6 +20,6 @@ contract OptionFactory is Ownable {
         string memory _name
     ) external onlyOwner {
         // create an option contract and push it to list of options:
-        optionList.push(new Option(_type, _a, _t, _k, _symbol, _name));
+        optionList.push(new CallOption(_a, _t, _k, _symbol, _name));
     }
 }
