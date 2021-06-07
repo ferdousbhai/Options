@@ -9,7 +9,6 @@ import "./LockedAsset.sol";
  * @title A call option contract. European options: no early exercise.
  * @dev An ERC20 token that represents a call option.
  * The end user can issue new supply by locking in the underlying asset.
- * TO DO: 'ERC20Burnable' doesn't seem to work out of the box. Need to implement this?
  */
 contract CallOption is ERC20, ERC20Burnable {
     ERC20 underlyingAsset; // The underlying asset

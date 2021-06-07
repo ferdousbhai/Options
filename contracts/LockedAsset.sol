@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol"; //why
 contract LockedAsset is ERC20, ERC20Burnable {
     constructor(string memory _name, string memory _symbol)
         ERC20(
-            string(abi.encodePacked("Locked", _name)),
+            string(abi.encodePacked("Locked ", _name)),
             string(abi.encodePacked("L", _symbol))
         )
     {}
