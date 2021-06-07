@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol"; //why is it only an abstract contract?
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "./LockedAsset.sol";
 
 /**
@@ -20,7 +20,7 @@ contract CallOption is ERC20, ERC20Burnable {
     uint256 strike; // strike price (in DAI)
     uint256 expiryPrice; // price at expiry time
 
-    LockedAsset lockedAsset; // TO DO: Custom ERC20 that has both 'burn' and 'mint' functions.
+    LockedAsset lockedAsset;
 
     uint256 fee; // fee per contract issuance (in DAI)
 
@@ -36,7 +36,7 @@ contract CallOption is ERC20, ERC20Burnable {
         underlyingAsset = ERC20(_underlyingAssetAddress);
         expiryTime = _t;
         strike = _k;
-        // TO DO: Instantiate 'lockedAsset'.
+        lockedAsset = new LockedAsset(_name, _symbol);
     }
 
     modifier notExpired() {
@@ -53,7 +53,7 @@ contract CallOption is ERC20, ERC20Burnable {
         uint256 _a = _n * 100;
         underlyingAsset.transferFrom(msg.sender, address(this), _a);
         _mint(msg.sender, _n);
-        lockedAsset.mint(msg.sender, _n); // mintable
+        lockedAsset.mint(msg.sender, _n);
     }
 
     function exercise(uint256 _n) external expired {
