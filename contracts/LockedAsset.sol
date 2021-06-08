@@ -2,7 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol"; //why is it only an abstract contract?
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title Represents right to a token holder who locked an asset in exchange of a call option
@@ -10,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol"; //why
  * The owner can return the token after expiry of the option to recoup the asset
  * (unless the asset was exercised - in which case the owner receives the strike price).
  */
-contract LockedAsset is ERC20, ERC20Burnable {
+contract LockedAsset is ERC20, ERC20Burnable, Ownable {
     constructor(string memory _name, string memory _symbol)
         ERC20(
             string(abi.encodePacked("Locked ", _name)),
@@ -18,7 +19,7 @@ contract LockedAsset is ERC20, ERC20Burnable {
         )
     {}
 
-    function mint(address to, uint256 amount) public {
+    function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);
     }
 }
