@@ -20,6 +20,6 @@ contract OptionFactory is Ownable {
         string memory _name
     ) external onlyOwner {
         // create an option contract and push it to list of options:
-        optionList.push(new CallOption(_a, _t, _k, _symbol, _name));
+        callOptionList.push(new CallOption(_a, _t, _k, _symbol, _name));
     }
 }
